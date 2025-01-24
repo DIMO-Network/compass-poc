@@ -118,7 +118,7 @@ func (cw *compassWrapper) getVehicles() {
 		for i, request := range vehicles.ProviderGet {
 			fmt.Println(i, request)
 
-			car := request.GetChrysler()
+			car := request.GetJeep()
 			fmt.Println("VIN: " + car.GetVin())
 		}
 	}
