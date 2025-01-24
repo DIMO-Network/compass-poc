@@ -1,6 +1,6 @@
 module github.com/dimo-network-compass-poc-2
 
-go 1.23.4
+go 1.23.3
 
 require (
 	buf.build/gen/go/nativeconnect/api/grpc/go v1.5.1-20250110075342-91f74fcd7396.2
