@@ -1,0 +1,43 @@
+replicaCount: 3
+image:
+  repository: dimozone/compass-poc
+  pullPolicy: IfNotPresent
+  tag: 0.1.4
+env:
+  ENVIRONMENT: prod
+  DIMO_NODE_ENDPOINT: https://dis.dimo.zone/data
+  LOG_LEVEL: info
+certificate:
+  caConfigMap: cae-prod-dimo-ca-certs
+ingress:
+  enabled: false
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/auth-tls-secret: ingress/cf-origin-ca
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: 'on'
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-origin: https://app.dimo.zone
+    external-dns.alpha.kubernetes.io/hostname: compass-poc.dimo.zone
+  hosts:
+    - host: compass-poc.dimo.zone
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+resources:
+  limits:
+    cpu: 1
+    memory: 1024Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+nodeSelector: {}
+tolerations: []
+affinity: {}
+podDisruptionBudget:
+  minAvailable: 1

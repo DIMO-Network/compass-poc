@@ -11,7 +11,6 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"log"
 	"os"
 	"time"
 )
@@ -89,30 +88,35 @@ func (cw *compassWrapper) getVehicles() ([]string, error) {
 }
 
 func (cw *compassWrapper) startStream(vins []string) {
-	timeoutCtx, cancel := context.WithTimeout(cw.ctx, time.Minute*10)
-	defer cancel()
-
-	realtimeData, err := cw.client.RealtimeRawPointByVins(timeoutCtx, &v1.RealtimeRawPointByVinsRequest{
-		Vins:                vins,
-		MaxStalenessMinutes: 1,
-	})
-	if err != nil {
-		cw.logger.Fatal().Err(err).Msg("failed to get realtime data")
-	}
-
-	// Read messages from the stream
-	cw.logger.Info().Msg("Receiving stream messages:")
 	for {
-		resp, err := realtimeData.Recv()
+		timeoutCtx, cancel := context.WithTimeout(cw.ctx, time.Minute*10)
+		defer cancel()
+		// Use the provided context
+		realtimeData, err := cw.client.RealtimeRawPointByVins(timeoutCtx, &v1.RealtimeRawPointByVinsRequest{
+			Vins:                vins,
+			MaxStalenessMinutes: 7,
+		})
 		if err != nil {
-			if err.Error() == "EOF" {
-				cw.logger.Info().Msg("Stream ended.")
-				break
-			}
-			log.Fatalf("Error receiving from stream: %v", err)
+			cw.logger.Error().Err(err).Msg("failed to get realtime data, retrying...")
+			time.Sleep(time.Second * 5) // Wait before retrying
+			continue
 		}
 
-		// Log the received message
-		cw.logger.Info().Interface("stream_data", resp).Msg("Received stream data")
+		// Read messages from the stream
+		cw.logger.Info().Msg("Receiving stream messages:")
+		for {
+			resp, err := realtimeData.Recv()
+			if err != nil {
+				if err.Error() == "EOF" {
+					cw.logger.Info().Msg("Stream ended.")
+					break
+				}
+				cw.logger.Fatal().Err(err).Msg("Error receiving from stream, retrying...")
+				break
+			}
+
+			// Log the received message
+			cw.logger.Info().Interface("stream_data", resp).Msg("Received stream data")
+		}
 	}
 }
