@@ -111,6 +111,7 @@ func (cw *compassWrapper) startStream(vins []string) {
 					cw.logger.Info().Msg("Stream ended.")
 					break
 				}
+
 				cw.logger.Err(err).Msg("Error receiving from stream, retrying...")
 				break
 			}
