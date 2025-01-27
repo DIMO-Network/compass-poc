@@ -26,6 +26,8 @@ env:
   LOG_LEVEL: debug
   SERVICE_NAME: compass-poc
   DIMO_NODE_ENDPOINT: https://dis.dev.dimo.zone/data
+  # TODO remove this and place in secret
+  COMPASS_API_KEY: "_SCTaBr0CGlrALB_FNnJ1A4Oxr-qA8_AlqKhZI20zNgYjiI="
 certificate:
   caConfigMap: cae-dev-dimo-ca-certs
 service:
