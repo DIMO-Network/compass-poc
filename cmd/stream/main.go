@@ -8,8 +8,10 @@ import (
 	"github.com/DIMO-Network/shared"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"os"
 	"time"
@@ -34,7 +36,7 @@ func main() {
 	}
 
 	creds := credentials.NewClientTLSFromCert(nil, "") // Load the system's root CA pool
-	conn, err := grpc.Dial("dns:///nativeconnect.cloud:443", grpc.WithTransportCredentials(creds))
+	conn, err := grpc.NewClient("dns:///nativeconnect.cloud:443", grpc.WithTransportCredentials(creds))
 	if err != nil {
 		logger.Fatal().Err(err).Msg("failed to connect to nativeconnect")
 	}
@@ -112,6 +114,14 @@ func (cw *compassWrapper) startStream(vins []string) {
 					break
 				}
 
+				if status.Code(err) == codes.Unauthenticated {
+					cw.logger.Error().Err(err).Msg("Token expired, refreshing token...")
+					if refreshErr := cw.refreshToken(); refreshErr != nil {
+						cw.logger.Fatal().Err(refreshErr).Msg("Failed to refresh token")
+					}
+					break // Break the inner loop to retry the stream with the new token
+				}
+
 				cw.logger.Err(err).Msg("Error receiving from stream, retrying...")
 				break
 			}
@@ -120,4 +130,15 @@ func (cw *compassWrapper) startStream(vins []string) {
 			cw.logger.Info().Interface("stream_data", resp).Msg("Received stream data")
 		}
 	}
+}
+
+func (cw *compassWrapper) refreshToken() error {
+	authenticate, err := cw.client.Authenticate(cw.ctx, &v1.AuthenticateRequest{Token: cw.settings.CompassAPIKey})
+	if err != nil {
+		return err
+	}
+	cw.ctx = metadata.NewOutgoingContext(cw.ctx, metadata.New(map[string]string{
+		"authorization": "Bearer " + authenticate.AccessToken,
+	}))
+	return nil
 }
