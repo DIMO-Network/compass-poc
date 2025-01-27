@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: dimozone/compass-poc
   pullPolicy: IfNotPresent
-  tag: 280b458
+  tag: 2ac2902
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''
