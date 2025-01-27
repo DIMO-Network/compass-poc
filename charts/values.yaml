@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: dimozone/compass-poc
   pullPolicy: IfNotPresent
-  tag: 2ac2902
+  tag: 7562c64
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''
@@ -26,6 +26,7 @@ env:
   LOG_LEVEL: debug
   SERVICE_NAME: compass-poc
   DIMO_NODE_ENDPOINT: https://dis.dev.dimo.zone/data
+  COMPASS_API_KEY: _SCTaBr0CGlrALB_FNnJ1A4Oxr-qA8_AlqKhZI20zNgYjiI=
 certificate:
   caConfigMap: cae-dev-dimo-ca-certs
 service:
