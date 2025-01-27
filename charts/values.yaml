@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: dimozone/compass-poc
   pullPolicy: IfNotPresent
-  tag: 280b458
+  tag: ab89938
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''
@@ -40,8 +40,7 @@ ports:
     containerPort: 8888
     protocol: TCP
 livenessProbe:
-  httpGet:
-    path: /
+  tcpSocket:
     port: mon-http
   initialDelaySeconds: 5
   periodSeconds: 10
@@ -49,8 +48,7 @@ livenessProbe:
   failureThreshold: 3
   successThreshold: 1
 readinessProbe:
-  httpGet:
-    path: /
+  tcpSocket:
     port: mon-http
   initialDelaySeconds: 10
   periodSeconds: 10
