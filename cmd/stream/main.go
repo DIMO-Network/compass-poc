@@ -94,7 +94,7 @@ func (cw *compassWrapper) startStream(vins []string) {
 		// Use the provided context
 		realtimeData, err := cw.client.RealtimeRawPointByVins(timeoutCtx, &v1.RealtimeRawPointByVinsRequest{
 			Vins:                vins,
-			MaxStalenessMinutes: 7,
+			MaxStalenessMinutes: 5,
 		})
 		if err != nil {
 			cw.logger.Error().Err(err).Msg("failed to get realtime data, retrying...")
@@ -111,7 +111,8 @@ func (cw *compassWrapper) startStream(vins []string) {
 					cw.logger.Info().Msg("Stream ended.")
 					break
 				}
-				cw.logger.Fatal().Err(err).Msg("Error receiving from stream, retrying...")
+
+				cw.logger.Err(err).Msg("Error receiving from stream, retrying...")
 				break
 			}
 
