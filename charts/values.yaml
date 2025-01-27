@@ -42,8 +42,7 @@ ports:
     containerPort: 8888
     protocol: TCP
 livenessProbe:
-  httpGet:
-    path: /
+  tcpSocket:
     port: mon-http
   initialDelaySeconds: 5
   periodSeconds: 10
@@ -51,8 +50,7 @@ livenessProbe:
   failureThreshold: 3
   successThreshold: 1
 readinessProbe:
-  httpGet:
-    path: /
+  tcpSocket:
     port: mon-http
   initialDelaySeconds: 10
   periodSeconds: 10
