@@ -27,7 +27,7 @@ type compassWrapper struct {
 func main() {
 	logger := zerolog.New(os.Stdout).Level(zerolog.InfoLevel).With().
 		Timestamp().
-		Str("app", "nativeconnect-go-service").
+		Str("app", "compass-iot").
 		Logger()
 
 	settings, err := shared.LoadConfig[Settings]("./settings.yaml")
