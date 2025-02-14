@@ -4,7 +4,6 @@ import (
 	"buf.build/gen/go/nativeconnect/api/grpc/go/nativeconnect/api/v1/apiv1grpc"
 	v1 "buf.build/gen/go/nativeconnect/api/protocolbuffers/go/nativeconnect/api/v1"
 	"context"
-	"fmt"
 	"github.com/DIMO-Network/shared"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
@@ -81,9 +80,57 @@ func (cw *compassWrapper) getVehicles() ([]string, error) {
 	var vins []string
 	if vehicles.ProviderGet != nil {
 		for _, request := range vehicles.ProviderGet {
-			fmt.Println(request)
-			car := request.GetJeep()
-			vins = append(vins, car.GetVin())
+			//fmt.Println(request)
+			//request.WhichProvider()
+			//car := request.GetJeep()
+			var carVin string
+			switch request.WhichProvider() {
+			case v1.GetRequest_Jeep_case:
+				carVin = request.GetJeep().GetVin()
+			case v1.GetRequest_Toyota_case:
+				carVin = request.GetToyota().GetVin()
+			case v1.GetRequest_Tesla_case:
+				carVin = request.GetTesla().GetVin()
+			case v1.GetRequest_Lexus_case:
+				carVin = request.GetLexus().GetVin()
+			case v1.GetRequest_Abarth_case:
+				carVin = request.GetAbarth().GetVin()
+			case v1.GetRequest_AlphaRomeo_case:
+				carVin = request.GetAlphaRomeo().GetVin()
+			case v1.GetRequest_Chrysler_case:
+				carVin = request.GetChrysler().GetVin()
+			case v1.GetRequest_Citroen_case:
+				carVin = request.GetCitroen().GetVin()
+			case v1.GetRequest_Dodge_case:
+				carVin = request.GetDodge().GetVin()
+			case v1.GetRequest_DsAuto_case:
+				carVin = request.GetDsAuto().GetVin()
+			case v1.GetRequest_Fiat_case:
+				carVin = request.GetFiat().GetVin()
+			case v1.GetRequest_Opel_case:
+				carVin = request.GetOpel().GetVin()
+			case v1.GetRequest_Peugeot_case:
+				carVin = request.GetPeugeot().GetVin()
+			case v1.GetRequest_Ram_case:
+				carVin = request.GetRam().GetVin()
+			case v1.GetRequest_Vauxhall_case:
+				carVin = request.GetVauxhall().GetVin()
+			case v1.GetRequest_Maserati_case:
+				carVin = request.GetMaserati().GetVin()
+			case v1.GetRequest_Hyundai_case:
+				carVin = request.GetHyundai().GetVin()
+			case v1.GetRequest_Genesis_case:
+				carVin = request.GetGenesis().GetVin()
+			case v1.GetRequest_Ford_case:
+				carVin = request.GetFord().GetVin()
+			case v1.GetRequest_Kia_case:
+				carVin = request.GetKia().GetVin()
+			case v1.GetRequest_Bmw_case:
+				carVin = request.GetBmw().GetVin()
+			default:
+				carVin = "Unknown provider"
+			}
+			vins = append(vins, carVin)
 		}
 	}
 	return vins, nil
