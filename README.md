@@ -12,3 +12,6 @@ just for a client no need to go down that path.
 - You'll need a reference to the v1 models for request/response: import v1 "buf.build/gen/go/nativeconnect/api/protocolbuffers/go/nativeconnect/api/v1"
 
 - add the token in the context for authenticating
+
+- After adding a VIN and getting the APPROVED response, we need to wait for the vehicle to drive before 
+getting data eg. GetLastReportedPoints - it won't populate until car drives.
