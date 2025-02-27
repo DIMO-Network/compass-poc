@@ -108,8 +108,21 @@ type compassWrapper struct {
 	settings Settings
 }
 
+// Lock may not work in NA yet, but works in other regions
+func (cw *compassWrapper) Lock() {
+	_, err := cw.client.IssueAction(cw.ctx, &v1.IssueActionRequest{
+		Vin:     "",
+		Command: &v1.IssueActionRequest_Lock{Lock: &v1.SetLockCommand{Locked: true}},
+	})
+	if err != nil {
+		cw.logger.Fatal().Err(err).Msg("failed to lock vehicle")
+	}
+	fmt.Println("locked")
+}
+
 func (cw *compassWrapper) getVehicles() {
 	vehicles, err := cw.client.GetVehicles(cw.ctx, &emptypb.Empty{})
+
 	if err != nil {
 		cw.logger.Fatal().Err(err).Msg("failed to get vehicles")
 	}
