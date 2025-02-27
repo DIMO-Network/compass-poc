@@ -69,6 +69,7 @@ func menuPrompt(cw *compassWrapper) {
 		fmt.Println("4. Check Compatibility for a VIN")
 		fmt.Println("5. Get Last Reported Points for a VIN")
 		fmt.Println("6. Get realtime data for a VIN")
+		fmt.Println("7. Lock Vehicle")
 		fmt.Print("Enter your choice: ")
 
 		// Read user input
@@ -94,6 +95,8 @@ func menuPrompt(cw *compassWrapper) {
 			cw.lastReportedPoints()
 		case 6:
 			cw.realtimeData()
+		case 7:
+			cw.Lock()
 		default:
 			fmt.Println("Invalid choice. Please select a valid option.")
 		}
@@ -110,8 +113,9 @@ type compassWrapper struct {
 
 // Lock may not work in NA yet, but works in other regions
 func (cw *compassWrapper) Lock() {
+	vin := promptForVIN()
 	_, err := cw.client.IssueAction(cw.ctx, &v1.IssueActionRequest{
-		Vin:     "",
+		Vin:     vin,
 		Command: &v1.IssueActionRequest_Lock{Lock: &v1.SetLockCommand{Locked: true}},
 	})
 	if err != nil {
