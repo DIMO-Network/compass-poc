@@ -31,6 +31,9 @@ func main() {
 	}
 	creds := credentials.NewClientTLSFromCert(nil, "") // Load the system's root CA pool
 
+	if settings.ConsentEmail == "" {
+		logger.Fatal().Msg("consent email is required setting")
+	}
 	conn, err := grpc.NewClient("dns:///nativeconnect.cloud:443", grpc.WithTransportCredentials(creds))
 	if err != nil {
 		logger.Fatal().Err(err).Msg("failed to connect to nativeconnect")
@@ -53,9 +56,10 @@ func main() {
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
 	menuPrompt(&compassWrapper{
-		client: client,
-		ctx:    ctx,
-		logger: logger,
+		client:   client,
+		ctx:      ctx,
+		logger:   logger,
+		settings: &settings,
 	})
 }
 
@@ -108,7 +112,7 @@ type compassWrapper struct {
 	client   apiv1grpc.ServiceClient
 	ctx      context.Context
 	logger   zerolog.Logger
-	settings Settings
+	settings *Settings
 }
 
 // Lock may not work in NA yet, but works in other regions
@@ -146,11 +150,11 @@ func (cw *compassWrapper) onboardVIN() {
 	vin := promptForVIN()
 	vehicleSignUp, err := cw.client.BatchVehicleSignUp(cw.ctx, &v1.BatchVehicleSignUpRequest{
 		ConsentEmail: cw.settings.ConsentEmail,
-		Consent: []*v1.Consent{
+		Consents: []*v1.Consent{
 			{
 				ProviderAuth: &v1.AuthRequest{Provider: &v1.AuthRequest_Vin{Vin: &v1.VinAuth{Vin: vin}}},
-				Scopes:       make([]v1.Scope, v1.Scope_SCOPE_READ, v1.Scope_SCOPE_COMMAND),
-				Region:       2, // NA
+				//Scopes:       make([]v1.Scope, v1.Scope_SCOPE_READ, v1.Scope_SCOPE_COMMAND),
+				Region: 2, // NA
 			},
 		},
 	})
