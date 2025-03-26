@@ -150,7 +150,7 @@ func (cw *compassWrapper) onboardVIN() {
 	vin := promptForVIN()
 	vehicleSignUp, err := cw.client.BatchVehicleSignUp(cw.ctx, &v1.BatchVehicleSignUpRequest{
 		ConsentEmail: cw.settings.ConsentEmail,
-		Consents: []*v1.Consent{
+		Consent: []*v1.Consent{
 			{
 				ProviderAuth: &v1.AuthRequest{Provider: &v1.AuthRequest_Vin{Vin: &v1.VinAuth{Vin: vin}}},
 				//Scopes:       make([]v1.Scope, v1.Scope_SCOPE_READ, v1.Scope_SCOPE_COMMAND),

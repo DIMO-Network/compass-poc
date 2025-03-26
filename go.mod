@@ -3,17 +3,17 @@ module github.com/dimo-network-compass-poc-2
 go 1.23.4
 
 require (
-	buf.build/gen/go/nativeconnect/api/grpc/go v1.5.1-20250310230338-b8895f81145f.2
-	buf.build/gen/go/nativeconnect/api/protocolbuffers/go v1.36.5-20250310230338-b8895f81145f.1
+	buf.build/gen/go/nativeconnect/api/grpc/go v1.5.1-20250324074443-bc6774b8c13d.2
+	buf.build/gen/go/nativeconnect/api/protocolbuffers/go v1.36.5-20250324074443-bc6774b8c13d.1
 	github.com/DIMO-Network/shared v0.12.9
-	github.com/rs/zerolog v1.33.0
+	github.com/rs/zerolog v1.34.0
 	google.golang.org/grpc v1.71.0
-	google.golang.org/protobuf v1.36.5
+	google.golang.org/protobuf v1.36.6
 )
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.5-20250307204501-0409229c3780.1 // indirect
-	buf.build/gen/go/compassiot/model/protocolbuffers/go v1.36.5-20250310230338-88c0a386a97f.1 // indirect
+	buf.build/gen/go/compassiot/model/protocolbuffers/go v1.36.5-20250324074443-a0582f43393a.1 // indirect
 	github.com/DIMO-Network/yaml v0.1.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/avast/retry-go/v4 v4.6.1 // indirect
@@ -40,6 +40,6 @@ require (
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250311190419-81fb87f6b8bf // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250311190419-81fb87f6b8bf // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250313205543-e70fdf4c4cb4 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250313205543-e70fdf4c4cb4 // indirect
 )
