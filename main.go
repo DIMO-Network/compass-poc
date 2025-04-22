@@ -74,6 +74,7 @@ func menuPrompt(cw *compassWrapper) {
 		fmt.Println("5. Get Last Reported Points for a VIN")
 		fmt.Println("6. Get realtime data for a VIN")
 		fmt.Println("7. Lock Vehicle")
+		fmt.Println("8. Remove Vehicle")
 		fmt.Print("Enter your choice: ")
 
 		// Read user input
@@ -101,6 +102,8 @@ func menuPrompt(cw *compassWrapper) {
 			cw.realtimeData()
 		case 7:
 			cw.Lock()
+		case 8:
+			cw.RemoveVehicle()
 		default:
 			fmt.Println("Invalid choice. Please select a valid option.")
 		}
@@ -113,6 +116,18 @@ type compassWrapper struct {
 	ctx      context.Context
 	logger   zerolog.Logger
 	settings *Settings
+}
+
+func (cw *compassWrapper) RemoveVehicle() {
+	vin := promptForVIN()
+	vehicle, err := cw.client.RemoveVehicle(cw.ctx, &v1.RemoveVehicleRequest{
+		Vins: []string{vin},
+	})
+	if err != nil {
+		cw.logger.Fatal().Err(err).Msg("failed to delete vehicle")
+	}
+	fmt.Println("removed")
+	fmt.Println(vehicle)
 }
 
 // Lock may not work in NA yet, but works in other regions
