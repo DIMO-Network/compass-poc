@@ -5,6 +5,7 @@ import (
 	v1 "buf.build/gen/go/nativeconnect/api/protocolbuffers/go/nativeconnect/api/v1"
 	"bufio"
 	"context"
+	"encoding/csv"
 	"fmt"
 	"github.com/DIMO-Network/shared"
 	"github.com/rs/zerolog"
@@ -119,20 +120,34 @@ type compassWrapper struct {
 }
 
 func (cw *compassWrapper) RemoveVehicle() {
-	vin := promptForVIN()
-	vehicle, err := cw.client.RemoveVehicle(cw.ctx, &v1.RemoveVehicleRequest{
-		Vins: []string{vin},
-	})
-	if err != nil {
-		cw.logger.Fatal().Err(err).Msg("failed to delete vehicle")
+	vin, isVIN := promptForVIN()
+	vins := []string{vin}
+	if isVIN {
+		vins = append(vins, vin)
+	} else {
+		// read from csv file in local path and input into vins
+		fromCSV, err := readVinsFromCSV(vin)
+		if err != nil {
+			cw.logger.Fatal().Err(err).Msg("failed to read csv file")
+		}
+		vins = fromCSV
 	}
-	fmt.Println("removed")
-	fmt.Println(vehicle)
+	for _, v := range vins {
+		vehicle, err := cw.client.RemoveVehicle(cw.ctx, &v1.RemoveVehicleRequest{
+			Vins: []string{v},
+		})
+		if err != nil {
+			cw.logger.Error().Err(err).Msg("failed to delete vehicle")
+			continue
+		}
+		fmt.Println("removed")
+		fmt.Println(vehicle)
+	}
 }
 
 // Lock may not work in NA yet, but works in other regions
 func (cw *compassWrapper) Lock() {
-	vin := promptForVIN()
+	vin, _ := promptForVIN()
 	_, err := cw.client.IssueAction(cw.ctx, &v1.IssueActionRequest{
 		Vin:     vin,
 		Command: &v1.IssueActionRequest_Lock{Lock: &v1.SetLockCommand{Locked: true}},
@@ -141,6 +156,29 @@ func (cw *compassWrapper) Lock() {
 		cw.logger.Fatal().Err(err).Msg("failed to lock vehicle")
 	}
 	fmt.Println("locked")
+}
+
+// readVinsFromCSV opens the CSV file at filePath and returns a slice of VINs from the first column.
+func readVinsFromCSV(filePath string) ([]string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("could not open file %q: %w", filePath, err)
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
+	if err != nil {
+		return nil, fmt.Errorf("could not read CSV file %q: %w", filePath, err)
+	}
+
+	var vins []string
+	for _, record := range records {
+		if len(record) > 0 {
+			vins = append(vins, record[0])
+		}
+	}
+	return vins, nil
 }
 
 func (cw *compassWrapper) getVehicles() {
@@ -162,7 +200,7 @@ func (cw *compassWrapper) getVehicles() {
 }
 
 func (cw *compassWrapper) onboardVIN() {
-	vin := promptForVIN()
+	vin, _ := promptForVIN()
 	vehicleSignUp, err := cw.client.BatchVehicleSignUp(cw.ctx, &v1.BatchVehicleSignUpRequest{
 		ConsentEmail: cw.settings.ConsentEmail,
 		Consent: []*v1.Consent{
@@ -181,7 +219,7 @@ func (cw *compassWrapper) onboardVIN() {
 }
 
 func (cw *compassWrapper) checkConsent() {
-	vin := promptForVIN()
+	vin, _ := promptForVIN()
 	consent, err := cw.client.CheckConsent(cw.ctx, &v1.CheckConsentRequest{Vin: vin})
 	if err != nil {
 		cw.logger.Fatal().Err(err).Msg("failed to check consent")
@@ -190,7 +228,7 @@ func (cw *compassWrapper) checkConsent() {
 }
 
 func (cw *compassWrapper) checkCompatibility() {
-	vin := promptForVIN()
+	vin, _ := promptForVIN()
 	compatibility, err := cw.client.CheckCompatibility(cw.ctx, &v1.CheckCompatibilityRequest{Vin: vin})
 	if err != nil {
 		cw.logger.Fatal().Err(err).Msg("failed to check compatibility")
@@ -199,7 +237,7 @@ func (cw *compassWrapper) checkCompatibility() {
 }
 
 func (cw *compassWrapper) lastReportedPoints() {
-	vin := promptForVIN()
+	vin, _ := promptForVIN()
 	lastReportedPoints, err := cw.client.GetLastReportedPoints(cw.ctx, &v1.GetLastReportedPointsRequest{Vin: vin,
 		Points: 5})
 	if err != nil {
@@ -213,7 +251,7 @@ func (cw *compassWrapper) lastReportedPoints() {
 }
 
 func (cw *compassWrapper) realtimeData() {
-	vin := promptForVIN()
+	vin, _ := promptForVIN()
 	timeoutCtx, cancel := context.WithTimeout(cw.ctx, time.Minute*10)
 	defer cancel()
 	realtimeData, err := cw.client.RealtimeRawPointByVins(timeoutCtx, &v1.RealtimeRawPointByVinsRequest{Vins: []string{vin},
@@ -240,19 +278,19 @@ func (cw *compassWrapper) realtimeData() {
 	}
 }
 
-func promptForVIN() string {
+func promptForVIN() (string, bool) {
 	reader := bufio.NewReader(os.Stdin)
 
 	// Prompt for VIN input
 	for {
-		fmt.Print("Enter a 17-character VIN: ")
+		fmt.Print("Enter a 17-character VIN, or a file name csv with multiple VINs (remove only): ")
 		vin, _ := reader.ReadString('\n')
 		vin = strings.TrimSpace(vin) // Remove any leading/trailing spaces
 
 		// Validate VIN length
 		if len(vin) != 17 {
-			fmt.Println("Invalid VIN. It must be exactly 17 characters long. Please try again.")
-			continue
+			fmt.Println("File name recognized")
+			return vin, false
 		}
 
 		// Optionally, validate VIN content (alphanumeric, no special characters except letters/numbers)
@@ -275,7 +313,7 @@ func promptForVIN() string {
 		fmt.Printf("  VDS (Descriptor): %s\n", vds)
 		fmt.Printf("  VIS (Identifier): %s\n", vis)
 
-		return vin
+		return vin, true
 	}
 }
 
